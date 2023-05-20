@@ -1,0 +1,36 @@
+.ant-drawer-body {
+  display: flex;
+}
+.workhome-settings {
+  margin: -24px;
+  flex: 1;
+
+  .ant-collapse-content-box {
+    > p:first-child {
+      margin-top: 0;
+    }
+
+    .ant-list-item {
+      h4 {
+        margin-top: 0;
+
+        .anticon {
+          display: none;
+          cursor: pointer;
+          padding: 4px;
+        }
+      }
+
+      &:hover {
+        .anticon {
+          display: inline-block;
+        }
+      }
+
+      .ant-list-item-meta-description {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}

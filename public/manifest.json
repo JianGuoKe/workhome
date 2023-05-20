@@ -1,0 +1,23 @@
+{
+  "name": "",
+  "short_name": "桌面 | 坚果壳",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "一个可以完全自定义的桌面",
+  "theme_color": "#1677ff",
+  "start_url": "/",
+  "lang": "zh-cn",
+  "url": "https://home.jianguoke.cn",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "200x200",
+      "type": "image/png"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "web"
+    }
+  ]
+}
