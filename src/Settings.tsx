@@ -1,8 +1,7 @@
 import {
   CopyOutlined,
   DeleteOutlined,
-  DownloadOutlined,
-  EditOutlined,
+  DownloadOutlined, 
   FolderOutlined,
   KeyOutlined,
   ScissorOutlined,

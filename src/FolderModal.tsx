@@ -67,12 +67,12 @@ export default function ({
   return (
     <Modal
       open={open}
-      title="添加记事本"
+      title="添加工作空间"
       onOk={addNewHash}
       onCancel={onClose}
       footer={footer}
     >
-      <p>添加一个去中心化网络(IPFS)上的桌面作为当前记事本</p>
+      <p>添加一个去中心化网络(IPFS)上的桌面作为当前工作空间</p>
       {newMode === 'add' && (
         <Input
           ref={inputPriRef}

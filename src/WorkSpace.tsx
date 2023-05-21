@@ -21,7 +21,7 @@ function EmptyCard(){
 export default function WorkSpace() {
   const [openPPK, setOpenPPK] = useState(false);
   const [createBook, setCreateBook] = useState('add');
-  const [openBook, setOpenModal] = useState(false);
+  const [openFolder, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
   const [cardModal, setCardModal] = useState(false);
 
@@ -50,6 +50,7 @@ export default function WorkSpace() {
 
   const showWorkSpacModal = (createFolder = 'add') => {
     setCreateBook(createFolder);
+    setOpenModal(true);
   };
 
   const hideWorkSpaceModal = () => {
@@ -122,7 +123,7 @@ export default function WorkSpace() {
         </Drawer>
       </Layout>
       <FolderModal
-        open={openBook}
+        open={openFolder}
         mode={createBook}
         onClose={hideWorkSpaceModal}
       ></FolderModal>

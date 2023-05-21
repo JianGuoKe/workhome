@@ -6,6 +6,10 @@ import { ConfigProvider } from 'antd';
 import { db } from './Data';
 import { start } from './Node';
 import reportWebVitals from './reportWebVitals';
+import 'dayjs/locale/zh-cn';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 
 console.log(
   '%c[邀请]:你已经看到这了,可以来github共建此项目 https://github.com/JianGuoKe/workhome',
@@ -30,7 +34,7 @@ db.init()
     );
   });
 
-  // If you want to start measuring performance in your app, pass a function
+// If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

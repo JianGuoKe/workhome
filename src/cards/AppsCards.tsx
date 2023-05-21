@@ -5,7 +5,7 @@ import { useContext } from 'react';
 
 const items: MenuProps['items'] = [
   {
-    label: <a href="https://note.jianguoke.cn" target='note'>记事本</a>,
+    label: <a href="https://note.jianguoke.cn" target='note'>工作空间</a>,
     key: 'note',
   },
   {
