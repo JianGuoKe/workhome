@@ -1,6 +1,11 @@
+.noneSelection{
+  user-select: none;
+}
+
 .workhome-card {
   display: flex;
   // overflow: hidden;
+  border-radius: 20px;  
 
   &-apps {
     flex: 1;
@@ -32,6 +37,10 @@
     background: #fff;
     justify-content: center;
     align-content: center;
+  }
+
+  &-empty{
+    .noneSelection
   }
 
   &-add {

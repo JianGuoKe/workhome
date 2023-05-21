@@ -32,21 +32,58 @@ const items: MenuProps['items'] = [
 ];
 
 export default function AppsCard() {
-  function handleAddCard(){
-    db.addCard().catch(message.error)
+  let isPressed = false;
+  let isMoved = false;
+
+  function handleAddCard() {
+    if (isMoved) {
+      isMoved = false;
+      return;
+    }
+    db.addCard().catch((e) => message.error(e.message));
   }
   return (
-    <Space className="workhome-card-apps" size={2}>
+    <Space
+      className="workhome-card-apps"
+      size={2}
+      onMouseDown={() => {
+        isPressed = true;
+      }}
+      onTouchStart={() => {
+        isPressed = true;
+      }}
+      onMouseMove={(e) => {
+        if (isPressed) {
+          isMoved = true;
+        }
+      }}
+      onTouchMove={() => {
+        if (isPressed) {
+          isMoved = true;
+        }
+      }}
+      onMouseUp={() => {
+        isPressed = false;
+      }}
+      onTouchEnd={() => {
+        isPressed = false;
+      }}
+      onTouchCancel={() => {
+        isPressed = false;
+      }}
+    >
       <Dropdown menu={{ items }} trigger={['click']}>
-        <Button
-          icon={<AppstoreOutlined  />}
-          title="坚果壳桌面"
-          type="text"
-        >
+        <Button icon={<AppstoreOutlined />} title="坚果壳桌面" type="text">
           JIANGUOKE
         </Button>
       </Dropdown>
-      <Button className='workhome-card-apps-add' icon={<PlusOutlined />} title="添加卡片" type="text" onClick={handleAddCard}></Button>
+      <Button
+        className="workhome-card-apps-add"
+        icon={<PlusOutlined />}
+        title="添加卡片"
+        type="text"
+        onClick={handleAddCard}
+      ></Button>
     </Space>
   );
 }

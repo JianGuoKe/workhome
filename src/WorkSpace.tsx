@@ -3,7 +3,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { db } from './Data';
 import { useEffect, useMemo, useState } from 'react';
-import { Layout, Drawer } from 'antd';
+import { Layout, Drawer, message } from 'antd';
 import PPKModal from './PPKModal';
 import Settings from './Settings';
 import FolderModal from './FolderModal';
@@ -86,16 +86,19 @@ export default function WorkSpace() {
               rowHeight={workspace.rowHeight}
               width={workspace.width}
               compactType={workspace.compactType}
-              onLayoutChange={(layout, allLayouts) => {
-                db.updateWorkSpaceLayout(workspace, allLayouts);
+              onBreakpointChange={(newBreakpoint: string, newCols: number)=>{
+                db.updateWorkSpaceBreakpoint(workspace, newBreakpoint, newCols).catch(e=>message.error(e.message))
+              }}
+              onLayoutChange={(_layout, allLayouts) => {
+                db.updateWorkSpaceLayout(workspace, allLayouts).catch(e=>message.error(e.message))
               }}
               onDragStop={(
-                layout,
-                oldItem,
+                _layout,
+                _oldItem,
                 newItem,
-                placeholder,
+                _placeholder,
                 e: MouseEvent,
-                element: HTMLElement
+                _element: HTMLElement
               ) => {
                 // 拖动鼠标超出grid区域认为是删除卡片
                 const client = document.querySelector(
@@ -105,7 +108,7 @@ export default function WorkSpace() {
                   (e.clientX <= 0 || e.clientX >= client!.clientWidth)  ||
                   (e.clientY <= 0 || e.clientY >= client!.clientHeight)
                 ) {
-                  db.deleteCardByName(newItem.i);
+                  db.deleteCardByName(newItem.i).catch(e=>message.error(e.message))
                 }
               }}
             >

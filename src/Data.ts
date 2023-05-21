@@ -12,6 +12,7 @@ export interface WorkSpace {
   rowHeight?: number;
   width?: number;
   compactType: 'vertical' | 'horizontal';
+  breakpoint?: string; // 当前的响应断点
   enabled: boolean;
   reason?: string;
   createAt: Date;
@@ -161,7 +162,7 @@ export class WorkHomeDexie extends Dexie {
     const layout = [
       { i: 'apps', x: 0, y: 0, w: 1, h: 1, isResizable: false },
       { i: 'settings', x: 11, y: 0, w: 1, h: 1, isResizable: false },
-      { i: 'add', x: 0, y: 1, w: 2, h: 1 },
+      { i: 'add', x: 0, y: 1, w: 2, h: 2 },
     ];
     const id = await this.workspacs.add({
       ...currentNode,
@@ -203,6 +204,17 @@ export class WorkHomeDexie extends Dexie {
   async updateWorkSpaceTitle(workspace: WorkSpace) {
     await this.workspacs.update(workspace, {
       title: workspace.title,
+    });
+  }
+
+  async updateWorkSpaceBreakpoint(
+    workspace: WorkSpace,
+    breakpoint: string,
+    newCols?: number
+  ) {
+    await this.workspacs.update(workspace, {
+      breakpoint,
+      newCols,
     });
   }
 
@@ -252,12 +264,61 @@ export class WorkHomeDexie extends Dexie {
     name: string = shortid.generate(),
     props: object = {},
     wsId?: IndexableType,
-    hash?: string
+    hash?: string,
+    w = 2,
+    h = 2,
+    x?: number,
+    y?: number
   ) {
     wsId = wsId || (await this.getActiveWorkSpace())?.id;
+    const card = this.createCard(name, type, props, wsId!);
     await this.cards.add({
-      ...this.createCard(name, type, props, wsId!),
+      ...card,
       hash,
+    });
+    await this.addWorkSpaceLayout(card.wsId, card.name, x, y, w, h);
+  }
+
+  private async addWorkSpaceLayout(
+    wsId: IndexableType,
+    name: string,
+    x?: number,
+    y?: number,
+    w = 2,
+    h = 2,
+    ...rest: any
+  ) {
+    const workspace = await this.workspacs.get(wsId);
+    const breakpoint =
+      workspace?.breakpoint || Object.keys(workspace?.layouts!)[0];
+    if (!breakpoint) {
+      return;
+    }
+    const layouts = workspace?.layouts;
+    const layout = layouts![breakpoint];
+    const target = layout.find((it) => it.i === 'add');
+    const nearest = target || layout
+      .sort(
+        (a, b) =>
+          Math.sqrt(a.x * a.x + a.y * a.y) - Math.sqrt(b.x * b.x + b.y * b.y)
+      )
+      .reverse()[0];
+    await this.updateWorkSpaceLayout(workspace!, {
+      ...layouts,
+      [breakpoint]: layout.concat({
+        i: name,
+        x:
+          x ?? workspace?.compactType === 'vertical'
+            ? nearest.x
+            : nearest.x + nearest.w + 1,
+        y:
+          y ?? workspace?.compactType === 'vertical'
+            ? nearest.y + nearest.h + 1
+            : nearest.y,
+        w,
+        h,
+        ...rest,
+      }),
     });
   }
 
@@ -267,13 +328,13 @@ export class WorkHomeDexie extends Dexie {
     id?: IndexableType,
     hash?: string
   ) {
-    let note = await this.cards.filter((it) => it.id === id).first();
-    if (!note) {
+    let card = await this.cards.filter((it) => it.id === id).first();
+    if (!card) {
       const activeWorkSpacE = await this.getActiveWorkSpace();
       if (!activeWorkSpacE) {
         throw new Error('桌面不存在, 请先创建一个桌面');
       }
-      note = {
+      card = {
         type,
         props,
         enabled: true,
@@ -284,20 +345,26 @@ export class WorkHomeDexie extends Dexie {
         checkAt: new Date(0),
         syncAt: hash ? getDateNow() : undefined,
       };
-      await this.cards.add(note);
+      await this.cards.add(card);
     } else {
-      await this.cards.update(note, {
+      await this.cards.update(card, {
         props,
         updateAt: getDateNow(),
-        hash: hash || note.hash,
+        hash: hash || card.hash,
         checkAt: new Date(0),
-        syncAt: hash ? getDateNow() : note.syncAt,
+        syncAt: hash ? getDateNow() : card.syncAt,
       });
     }
   }
 
   async deleteCardByName(name: string, wsId?: IndexableType) {
     wsId = wsId || (await this.getActiveWorkSpace())?.id;
+    if(name === 'apps' || name === 'add'){
+      const addcount = await this.cards  .filter((it) => it.wsId === wsId && (it.name === 'apps' || it.name === 'add')).count();
+      if (addcount<=1){
+        throw new Error('不能删除所有新增卡片按钮');
+      }
+    }
     const card = await this.cards
       .filter((it) => it.name === name && it.wsId === wsId)
       .first();
@@ -348,7 +415,7 @@ export class WorkHomeDexie extends Dexie {
     await this.keys.delete(id);
   }
 
-  async resyncNote(note: Card | IndexableType) {
+  async resyncCard(note: Card | IndexableType) {
     await this.cards.update(note, {
       reason: '',
       checkAt: new Date(0),
