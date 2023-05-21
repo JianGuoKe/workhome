@@ -1,3 +1,3 @@
-export default function EmptyCard() {
-  return <div className="workhome-card-empty">卡片不存在</div>;
+export default function EmptyCard(props: { text: string }) {
+  return <div className="workhome-card-empty">{props.text}</div>;
 }

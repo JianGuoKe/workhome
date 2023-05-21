@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
-import { db } from './Data';
+import { Card, db } from './Data';
 import { useEffect, useMemo, useState } from 'react';
 import { Layout, Drawer, message } from 'antd';
 import PPKModal from './PPKModal';
@@ -12,12 +12,15 @@ import { components as cardComponents } from './cards';
 import './WorkSpace.less';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import EmptyCard from './cards/EmptyCard';
+import { CardDesignerModal } from './cards/Card';
 
 export default function WorkSpace() {
   const [openPPK, setOpenPPK] = useState(false);
   const [createBook, setCreateBook] = useState('add');
   const [openFolder, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
+  const [cardEditing, setEditCard] = useState<Card>();
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
 
   const ResponsiveReactGridLayout = useMemo(
     () => WidthProvider(Responsive),
@@ -32,6 +35,7 @@ export default function WorkSpace() {
         .toArray();
       return { workspace, cards };
     }) || {};
+
   const nokey = useLiveQuery(
     async () => !(await db.getActiveKey()) && !!(await db.getActaiveNode())
   );
@@ -65,6 +69,32 @@ export default function WorkSpace() {
     setOpenSettings(false);
   };
 
+  const showCardDesignerModal = (card?: Card) => {
+    setEditCard(card);
+    setIsCardModalOpen(true);
+  };
+
+  const handleCardDesignerOk = () => {
+    setIsCardModalOpen(false);
+  };
+
+  const hideCardDesignerModal = () => {
+    setIsCardModalOpen(false);
+  };
+
+  const childs = useMemo(
+    () =>
+      cards?.map((card: any) => {
+        const Card = cardComponents[card.type] || EmptyCard;
+        return (
+          <div key={card.name} className="workhome-card">
+            <Card {...card.props}></Card>
+          </div>
+        );
+      }),
+    [cards]
+  );
+
   return (
     <WorkSpaceContext.Provider
       value={{
@@ -74,6 +104,8 @@ export default function WorkSpace() {
         hideWorkSpaceModal,
         showSettingsDrawer,
         closeSettingsDrawer,
+        showCardDesignerModal,
+        hideCardDesignerModal,
       }}
     >
       <Layout className="workhome-grid">
@@ -82,15 +114,22 @@ export default function WorkSpace() {
             <ResponsiveReactGridLayout
               className="workhome-grid-layout"
               layouts={workspace.layouts}
-              cols={workspace.cols}
+              cols={workspace.cols} 
+              useCSSTransforms={false}
               rowHeight={workspace.rowHeight}
               width={workspace.width}
               compactType={workspace.compactType}
-              onBreakpointChange={(newBreakpoint: string, newCols: number)=>{
-                db.updateWorkSpaceBreakpoint(workspace, newBreakpoint, newCols).catch(e=>message.error(e.message))
+              onBreakpointChange={(newBreakpoint: string, newCols: number) => {
+                db.updateWorkSpaceBreakpoint(
+                  workspace,
+                  newBreakpoint,
+                  newCols
+                ).catch((e) => message.error(e.message));
               }}
               onLayoutChange={(_layout, allLayouts) => {
-                db.updateWorkSpaceLayout(workspace, allLayouts).catch(e=>message.error(e.message))
+                db.updateWorkSpaceLayout(workspace, allLayouts).catch((e) =>
+                  message.error(e.message)
+                );
               }}
               onDragStop={(
                 _layout,
@@ -101,25 +140,20 @@ export default function WorkSpace() {
                 _element: HTMLElement
               ) => {
                 // 拖动鼠标超出grid区域认为是删除卡片
-                const client = document.querySelector(
-                  '#root'
-                );
+                const client = document.querySelector('#root');
                 if (
-                  (e.clientX <= 0 || e.clientX >= client!.clientWidth)  ||
-                  (e.clientY <= 0 || e.clientY >= client!.clientHeight)
+                  e.clientX <= 0 ||
+                  e.clientX >= client!.clientWidth ||
+                  e.clientY <= 0 ||
+                  e.clientY >= client!.clientHeight
                 ) {
-                  db.deleteCardByName(newItem.i).catch(e=>message.error(e.message))
+                  db.deleteCardByName(newItem.i).catch((e) =>
+                    message.error(e.message)
+                  );
                 }
               }}
             >
-              {cards?.map((card: any) => {
-                const Card = cardComponents[card.type] || EmptyCard;
-                return (
-                  <div key={card.name} className="workhome-card">
-                    <Card {...card.props}></Card>
-                  </div>
-                );
-              })}
+              {childs}
             </ResponsiveReactGridLayout>
           )}
         </Layout>
@@ -141,6 +175,12 @@ export default function WorkSpace() {
         onClose={hideWorkSpaceModal}
       ></FolderModal>
       <PPKModal open={openPPK} onClose={hideKeyModal}></PPKModal>
+      <CardDesignerModal
+        card={cardEditing}
+        open={isCardModalOpen}
+        onOk={handleCardDesignerOk}
+        onCancel={hideCardDesignerModal}
+      ></CardDesignerModal>
     </WorkSpaceContext.Provider>
   );
 }

@@ -1,5 +1,6 @@
 import { AudioOutlined } from '@ant-design/icons';
-import { Input, Select, Space } from 'antd';
+import { Input, Select, Space, message } from 'antd';
+import { useState } from 'react';
 
 const { Search } = Input;
 
@@ -15,26 +16,57 @@ const suffix = (
 // https://www.google.com/search?q=1222
 // https://www.baidu.com/s?wd=4444
 
-const options = [
+const DefaultOptions = [
   {
-    value: 'zhejiang',
-    label: 'Zhejiang',
+    value: 'google',
+    label: 'Google',
+    url: 'https://www.google.com/search?q=$query',
   },
   {
-    value: 'jiangsu',
-    label: 'Jiangsu',
+    value: 'baidu',
+    label: '百度',
+    url: 'https://www.baidu.com/s?wd=$query',
   },
 ];
 
-function handleSearch(text: string) {}
+export default function SearchCard(props: {
+  options:
+    | {
+        value: string;
+        label: string;
+        url: string;
+      }[]
+    | string[];
+}) {
+  const opts = (props.options || []).map((opt) => {
+    if (typeof opt === 'string') {
+      return DefaultOptions.find((it) => it.value === opt) || ({} as any);
+    } else {
+      return opt;
+    }
+  });
+  const [target, setTarget] = useState(opts[0]?.value);
 
-export default function SearchCard() {
+  function handleSearch(text: string) {
+    const opt = opts.find((it) => it.value === target);
+    if (!opt) {
+      return message.warning('未找到搜索引擎');
+    }
+    window.open(opt.url.replace('$query', text), target);
+  }
+
   return (
     <div className="workhome-card-search">
       <Space.Compact>
-        <Select defaultValue="Zhejiang" options={options} />
+        {opts.length > 1 && (
+          <Select
+            defaultValue={opts[0]?.value}
+            onChange={(value) => setTarget(value)}
+            options={opts}
+          />
+        )}
         <Search
-          placeholder="搜索网页"
+          placeholder={'搜索' + (opts[0]?.title || '网页')}
           allowClear
           suffix={suffix}
           onSearch={handleSearch}

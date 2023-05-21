@@ -270,13 +270,7 @@ export class WorkHomeDexie extends Dexie {
     x?: number,
     y?: number
   ) {
-    wsId = wsId || (await this.getActiveWorkSpace())?.id;
-    const card = this.createCard(name, type, props, wsId!);
-    await this.cards.add({
-      ...card,
-      hash,
-    });
-    await this.addWorkSpaceLayout(card.wsId, card.name, x, y, w, h);
+    await this.upsertCard(null, props, type, name, wsId, hash, w, h, x, y);
   }
 
   private async addWorkSpaceLayout(
@@ -297,12 +291,14 @@ export class WorkHomeDexie extends Dexie {
     const layouts = workspace?.layouts;
     const layout = layouts![breakpoint];
     const target = layout.find((it) => it.i === 'add');
-    const nearest = target || layout
-      .sort(
-        (a, b) =>
-          Math.sqrt(a.x * a.x + a.y * a.y) - Math.sqrt(b.x * b.x + b.y * b.y)
-      )
-      .reverse()[0];
+    const nearest =
+      target ||
+      layout
+        .sort(
+          (a, b) =>
+            Math.sqrt(a.x * a.x + a.y * a.y) - Math.sqrt(b.x * b.x + b.y * b.y)
+        )
+        .reverse()[0];
     await this.updateWorkSpaceLayout(workspace!, {
       ...layouts,
       [breakpoint]: layout.concat({
@@ -323,29 +319,36 @@ export class WorkHomeDexie extends Dexie {
   }
 
   async upsertCard(
-    type: string,
-    props: object,
-    id?: IndexableType,
-    hash?: string
+    id?: IndexableType | null,
+    props: object = {},
+    type: string = 'empty',
+    name: string = shortid.generate(),
+    wsId?: IndexableType,
+    hash?: string,
+    w = 2,
+    h = 2,
+    x?: number,
+    y?: number
   ) {
     let card = await this.cards.filter((it) => it.id === id).first();
+    name = name || shortid.generate();
+    w = w || 2;
+    h = h || 2;
     if (!card) {
-      const activeWorkSpacE = await this.getActiveWorkSpace();
-      if (!activeWorkSpacE) {
+      const activeWorkSpace = wsId
+        ? await this.workspacs.get(wsId)
+        : await this.getActiveWorkSpace();
+      if (!activeWorkSpace) {
         throw new Error('桌面不存在, 请先创建一个桌面');
       }
-      card = {
-        type,
-        props,
-        enabled: true,
-        wsId: activeWorkSpacE?.id!,
-        createAt: getDateNow(),
-        updateAt: getDateNow(),
+      const card = this.createCard(name, type, props, activeWorkSpace.id!);
+      await this.cards.add({
+        ...card,
         hash,
         checkAt: new Date(0),
         syncAt: hash ? getDateNow() : undefined,
-      };
-      await this.cards.add(card);
+      });
+      await this.addWorkSpaceLayout(card.wsId, card.name, x, y, w, h);
     } else {
       await this.cards.update(card, {
         props,
@@ -359,9 +362,13 @@ export class WorkHomeDexie extends Dexie {
 
   async deleteCardByName(name: string, wsId?: IndexableType) {
     wsId = wsId || (await this.getActiveWorkSpace())?.id;
-    if(name === 'apps' || name === 'add'){
-      const addcount = await this.cards  .filter((it) => it.wsId === wsId && (it.name === 'apps' || it.name === 'add')).count();
-      if (addcount<=1){
+    if (name === 'apps' || name === 'add') {
+      const addcount = await this.cards
+        .filter(
+          (it) => it.wsId === wsId && (it.name === 'apps' || it.name === 'add')
+        )
+        .count();
+      if (addcount <= 1) {
         throw new Error('不能删除所有新增卡片按钮');
       }
     }

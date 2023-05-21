@@ -1,11 +1,21 @@
-.noneSelection{
+.noneSelection {
   user-select: none;
 }
 
 .workhome-card {
   display: flex;
   // overflow: hidden;
-  border-radius: 20px;  
+  > div {
+    border-radius: 6px;
+    flex: 1;
+  }
+
+  &-search{
+    display: flex;
+    .ant-space-compact{
+      flex: 1;
+    }
+  }
 
   &-apps {
     flex: 1;
@@ -39,8 +49,8 @@
     align-content: center;
   }
 
-  &-empty{
-    .noneSelection
+  &-empty {
+    .noneSelection;
   }
 
   &-add {
@@ -64,5 +74,9 @@
         color: #1677ff;
       }
     }
+  }
+
+  &-calendar{
+    overflow: hidden;
   }
 }

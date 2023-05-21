@@ -3,6 +3,7 @@ import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons';
 import WorkSpaceContext from '../WorkSpaceContext';
 import { useContext } from 'react';
 import { db } from '../Data';
+import { useCard } from './Card';
 
 const items: MenuProps['items'] = [
   {
@@ -32,46 +33,17 @@ const items: MenuProps['items'] = [
 ];
 
 export default function AppsCard() {
-  let isPressed = false;
-  let isMoved = false;
+  const [isInCardAction, cardProps] = useCard();
+  const context = useContext(WorkSpaceContext);
 
   function handleAddCard() {
-    if (isMoved) {
-      isMoved = false;
+    if (isInCardAction()) {
       return;
     }
-    db.addCard().catch((e) => message.error(e.message));
+    context?.showCardDesignerModal();
   }
   return (
-    <Space
-      className="workhome-card-apps"
-      size={2}
-      onMouseDown={() => {
-        isPressed = true;
-      }}
-      onTouchStart={() => {
-        isPressed = true;
-      }}
-      onMouseMove={(e) => {
-        if (isPressed) {
-          isMoved = true;
-        }
-      }}
-      onTouchMove={() => {
-        if (isPressed) {
-          isMoved = true;
-        }
-      }}
-      onMouseUp={() => {
-        isPressed = false;
-      }}
-      onTouchEnd={() => {
-        isPressed = false;
-      }}
-      onTouchCancel={() => {
-        isPressed = false;
-      }}
-    >
+    <Space className="workhome-card-apps" size={2} {...cardProps}>
       <Dropdown menu={{ items }} trigger={['click']}>
         <Button icon={<AppstoreOutlined />} title="坚果壳桌面" type="text">
           JIANGUOKE
