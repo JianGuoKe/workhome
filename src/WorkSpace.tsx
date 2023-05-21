@@ -1,5 +1,4 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { db } from './Data';
@@ -8,20 +7,31 @@ import { Layout, Drawer } from 'antd';
 import PPKModal from './PPKModal';
 import Settings from './Settings';
 import FolderModal from './FolderModal';
-import './WorkSpace.less';
-import DefaultCard from './cards/DefaultCard';
 import WorkSpaceContext from './WorkSpaceContext';
-import SettingCard from './cards/SettingCard';
+import { components as cardComponents } from './cards';
+import './WorkSpace.less';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+function EmptyCard(){
+  return '卡片不存在';
+}
 
 export default function WorkSpace() {
   const [openPPK, setOpenPPK] = useState(false);
   const [createBook, setCreateBook] = useState('add');
   const [openBook, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
+  const [cardModal, setCardModal] = useState(false);
 
-  const workspace = useLiveQuery(() =>
-    db.workspacs.filter((ws) => ws.enabled).first()
-  );
+  const workspace = useLiveQuery(async () => {
+    const ws: any = await db.workspacs.filter((ws) => ws.enabled).first();
+    ws.cards = await db.cards
+      .filter((card) => card.wsId === ws.id)
+      .toArray();
+    return ws;
+  });
   const nokey = useLiveQuery(
     async () => !(await db.getActiveKey()) && !!(await db.getActaiveNode())
   );
@@ -54,40 +64,49 @@ export default function WorkSpace() {
     setOpenSettings(false);
   };
 
+  const showCardModal = ()=>{
+    setCardModal(true);
+  }
+
+  const hideCardModal = ()=>{
+    setCardModal(false)
+  }
+
   return (
     <WorkSpaceContext.Provider
       value={{
-        showKeyModal, 
+        showKeyModal,
         hideKeyModal,
         showWorkSpacModal,
         hideWorkSpaceModal,
         showSettingsDrawer,
         closeSettingsDrawer,
+        showCardModal,
+        hideCardModal
       }}
     >
-      <Layout hasSider={true} className="workhome-grid">
-        <Layout hasSider={true}>
+      <Layout className="workhome-grid">
+        <Layout>
           {workspace && (
-            <GridLayout
-              className="layout"
-              layout={workspace.layout}
+            <ResponsiveGridLayout
+              className="workhome-grid-layout"
+              layouts={workspace.layouts}
               cols={workspace.cols}
               rowHeight={workspace.rowHeight}
               width={workspace.width}
-              onLayoutChange={(layout) =>
-                db.updateWorkSpaceLayout(workspace, layout)
-              }
+              onLayoutChange={(layout, allLayouts) => {
+                db.updateWorkSpaceLayout(workspace, allLayouts);
+              }}
             >
-              <div key="a">
-                <DefaultCard></DefaultCard>
-              </div>
-              <div key="b">
-                <DefaultCard></DefaultCard>
-              </div>
-              <div key="c">
-                <SettingCard></SettingCard>
-              </div>
-            </GridLayout>
+              {workspace.cards?.map((card: any) => {
+                const Card = cardComponents[card.type] || EmptyCard;
+                return (
+                  <div key={card.name} className="workhome-card">
+                    <Card {...card.props}></Card>
+                  </div>
+                );
+              })}
+            </ResponsiveGridLayout>
           )}
         </Layout>
         <Drawer

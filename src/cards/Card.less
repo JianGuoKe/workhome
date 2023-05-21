@@ -1,9 +1,22 @@
-.workhome-card{
-    background: gray;
-    width: 100%;
-    height: 100%;
+.workhome-card {
+  display: flex;
 
-    &-settings{
-        background: transparent;
-    }
+  &-text {
+    display: flex;
+  }
+
+  &-settings {
+    flex: 1;
+    display: flex;
+    justify-content: right; 
+  }
+
+  &-add {
+    flex: 1;
+    display: flex;
+    background: #fff;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
+  }
 }
