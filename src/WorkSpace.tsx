@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { db } from './Data';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Layout, Drawer } from 'antd';
 import PPKModal from './PPKModal';
 import Settings from './Settings';
@@ -11,27 +11,27 @@ import WorkSpaceContext from './WorkSpaceContext';
 import { components as cardComponents } from './cards';
 import './WorkSpace.less';
 import { Responsive, WidthProvider } from 'react-grid-layout';
-
-const ResponsiveGridLayout = WidthProvider(Responsive);
-
-function EmptyCard(){
-  return '卡片不存在';
-}
+import EmptyCard from './cards/EmptyCard';
 
 export default function WorkSpace() {
   const [openPPK, setOpenPPK] = useState(false);
   const [createBook, setCreateBook] = useState('add');
   const [openFolder, setOpenModal] = useState(false);
   const [openSettings, setOpenSettings] = useState(false);
-  const [cardModal, setCardModal] = useState(false);
 
-  const workspace = useLiveQuery(async () => {
-    const ws: any = await db.workspacs.filter((ws) => ws.enabled).first();
-    ws.cards = await db.cards
-      .filter((card) => card.wsId === ws.id)
-      .toArray();
-    return ws;
-  });
+  const ResponsiveReactGridLayout = useMemo(
+    () => WidthProvider(Responsive),
+    []
+  );
+
+  const { workspace, cards } =
+    useLiveQuery(async () => {
+      const workspace = await db.workspacs.filter((ws) => ws.enabled).first();
+      const cards = await db.cards
+        .filter((card) => card.wsId === workspace?.id)
+        .toArray();
+      return { workspace, cards };
+    }) || {};
   const nokey = useLiveQuery(
     async () => !(await db.getActiveKey()) && !!(await db.getActaiveNode())
   );
@@ -65,14 +65,6 @@ export default function WorkSpace() {
     setOpenSettings(false);
   };
 
-  const showCardModal = ()=>{
-    setCardModal(true);
-  }
-
-  const hideCardModal = ()=>{
-    setCardModal(false)
-  }
-
   return (
     <WorkSpaceContext.Provider
       value={{
@@ -82,24 +74,42 @@ export default function WorkSpace() {
         hideWorkSpaceModal,
         showSettingsDrawer,
         closeSettingsDrawer,
-        showCardModal,
-        hideCardModal
       }}
     >
       <Layout className="workhome-grid">
         <Layout>
           {workspace && (
-            <ResponsiveGridLayout
+            <ResponsiveReactGridLayout
               className="workhome-grid-layout"
               layouts={workspace.layouts}
               cols={workspace.cols}
               rowHeight={workspace.rowHeight}
               width={workspace.width}
+              compactType={workspace.compactType}
               onLayoutChange={(layout, allLayouts) => {
                 db.updateWorkSpaceLayout(workspace, allLayouts);
               }}
+              onDragStop={(
+                layout,
+                oldItem,
+                newItem,
+                placeholder,
+                e: MouseEvent,
+                element: HTMLElement
+              ) => {
+                // 拖动鼠标超出grid区域认为是删除卡片
+                const client = document.querySelector(
+                  '#root'
+                );
+                if (
+                  (e.clientX <= 0 || e.clientX >= client!.clientWidth)  ||
+                  (e.clientY <= 0 || e.clientY >= client!.clientHeight)
+                ) {
+                  db.deleteCardByName(newItem.i);
+                }
+              }}
             >
-              {workspace.cards?.map((card: any) => {
+              {cards?.map((card: any) => {
                 const Card = cardComponents[card.type] || EmptyCard;
                 return (
                   <div key={card.name} className="workhome-card">
@@ -107,7 +117,7 @@ export default function WorkSpace() {
                   </div>
                 );
               })}
-            </ResponsiveGridLayout>
+            </ResponsiveReactGridLayout>
           )}
         </Layout>
         <Drawer

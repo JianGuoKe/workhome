@@ -1,7 +1,7 @@
 import {
   CopyOutlined,
   DeleteOutlined,
-  DownloadOutlined, 
+  DownloadOutlined,
   FolderOutlined,
   KeyOutlined,
   ScissorOutlined,
@@ -16,6 +16,8 @@ import {
   message,
   Popconfirm,
   Select,
+  Space,
+  Switch,
 } from 'antd';
 import copy from 'copy-to-clipboard';
 import React, { useRef, useState } from 'react';
@@ -143,6 +145,7 @@ export default function Settings({ onPPKAdd, onFolderAdd }: any) {
                       description={
                         <span title={item.hash}>
                           {item.name}{' '}
+                          <Space>
                           <span
                             title={getReasonText(item.reason)}
                             onClick={() => db.resyncWorkSpace(item)}
@@ -154,6 +157,20 @@ export default function Settings({ onPPKAdd, onFolderAdd }: any) {
                               ? ''
                               : '(同步中...)'}
                           </span>
+                            <Switch
+                              checkedChildren="纵向"
+                              unCheckedChildren="横向"
+                              checked={item.compactType !== 'horizontal'}
+                              onChange={(checked) => {
+                                item.compactType = checked
+                                  ? 'vertical'
+                                  : 'horizontal';
+                                db.changeWorkSpaceCompactType(item).catch(
+                                  message.error
+                                );
+                              }}
+                            />
+                          </Space>
                         </span>
                       }
                     />

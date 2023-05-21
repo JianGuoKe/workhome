@@ -1,16 +1,17 @@
 import Dexie, { IndexableType, Table } from 'dexie';
 import shortid from 'shortid';
 import { loadPem } from './utils';
-import { Layout, Layouts } from 'react-grid-layout';
+import { Layouts } from 'react-grid-layout';
 
 export interface WorkSpace {
-  id?: number;
+  id?: IndexableType;
   title?: string;
   name: string; // name 存储MFS文件名称
   layouts: Layouts;
   cols: { [key: string]: number };
   rowHeight?: number;
   width?: number;
+  compactType: 'vertical' | 'horizontal';
   enabled: boolean;
   reason?: string;
   createAt: Date;
@@ -25,9 +26,9 @@ export interface WorkSpace {
 }
 
 export interface Card {
-  id?: number;
+  id?: IndexableType;
   props: object;
-  wsId?: number;
+  wsId?: IndexableType;
   name?: string; // name 存储MFS文件名称
   type: string;
   enabled: boolean;
@@ -42,7 +43,7 @@ export interface Card {
 }
 
 export interface Key {
-  id?: number;
+  id?: IndexableType;
   name: string;
   pubKey: string;
   priKey: string;
@@ -57,7 +58,7 @@ export interface Node {
 }
 
 export interface Option {
-  id?: number;
+  id?: IndexableType;
   workSpaceVisible?: string;
   syncMin?: number; // 同步时间间隔
 }
@@ -160,7 +161,7 @@ export class WorkHomeDexie extends Dexie {
     const layout = [
       { i: 'apps', x: 0, y: 0, w: 1, h: 1, isResizable: false },
       { i: 'settings', x: 11, y: 0, w: 1, h: 1, isResizable: false },
-      { i: 'add', x: 0, y: 1, w: 2, h: 1  },
+      { i: 'add', x: 0, y: 1, w: 2, h: 1 },
     ];
     const id = await this.workspacs.add({
       ...currentNode,
@@ -170,6 +171,7 @@ export class WorkHomeDexie extends Dexie {
       updateAt: getDateNow(),
       checkAt: new Date(0),
       isActived: false,
+      compactType: 'vertical',
       layouts: {
         lg: layout,
       },
@@ -178,9 +180,15 @@ export class WorkHomeDexie extends Dexie {
       //  width: 1200,
     });
     await this.cards.bulkAdd(
-      layout.map((it) => this.createCard(it.i, it.i, {}, id as number))
+      layout.map((it) => this.createCard(it.i, it.i, {}, id))
     );
     await this.changeWorkSpace(id);
+  }
+
+  async changeWorkSpaceCompactType(workspace: WorkSpace) {
+    await this.workspacs.update(workspace, {
+      compactType: workspace.compactType,
+    });
   }
 
   async changeWorkSpace(id: IndexableType) {
@@ -222,7 +230,12 @@ export class WorkHomeDexie extends Dexie {
     }
   }
 
-  private createCard(name: string, type: string, props: object, wsId: number) {
+  private createCard(
+    name: string,
+    type: string,
+    props: object,
+    wsId: IndexableType
+  ) {
     return {
       type,
       props,
@@ -235,13 +248,17 @@ export class WorkHomeDexie extends Dexie {
   }
 
   async addCard(
-    name: string,
-    type: string,
-    props: object,
-    wsId: number,
+    type: string = 'empty',
+    name: string = shortid.generate(),
+    props: object = {},
+    wsId?: IndexableType,
     hash?: string
   ) {
-    await this.cards.add({ ...this.createCard(name, type, props, wsId), hash });
+    wsId = wsId || (await this.getActiveWorkSpace())?.id;
+    await this.cards.add({
+      ...this.createCard(name, type, props, wsId!),
+      hash,
+    });
   }
 
   async upsertCard(
@@ -279,12 +296,23 @@ export class WorkHomeDexie extends Dexie {
     }
   }
 
-  async deleteCard(id: IndexableType) {
-    const note = await this.cards.get(id);
-    if (!note) {
+  async deleteCardByName(name: string, wsId?: IndexableType) {
+    wsId = wsId || (await this.getActiveWorkSpace())?.id;
+    const card = await this.cards
+      .filter((it) => it.name === name && it.wsId === wsId)
+      .first();
+    if (!card) {
       return;
     }
-    if (note.hash) {
+    await this.deleteCard(card.id!);
+  }
+
+  async deleteCard(id: IndexableType) {
+    const card = await this.cards.get(id);
+    if (!card) {
+      return;
+    }
+    if (card.hash) {
       // 逻辑删除，需要同步ipfs后彻底删除
       await this.cards.update(id, {
         enabled: false,

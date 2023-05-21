@@ -1,26 +1,35 @@
-.workhome-grid{
+.workhome-grid {
+  background: transparent;
+
+  .ant-layout-header {
     background: transparent;
+    width: 100%;
+  }
 
-    .ant-layout-header{
-        background: transparent;
-        width: 100%; 
-    }
+  .ant-layout {
+    background: transparent;
+  }
 
-    .ant-layout{
-        background: transparent;
-    }
+  &-layout {
+    min-height: 300px;
+  }
 
-    &-layout{
-        min-height: 300px;
-    }
+  &-settings {
+    float: right;
+  }
 
-    &-settings{
-        float: right;
-    }
+  .react-grid-item.react-grid-placeholder {
+    background: #1677ff;
+  }
 
-    .react-grid-item.react-grid-placeholder{
-        background: #1677ff;
+  .workhome-card:not(.react-resizable-hide) {
+    .react-resizable-handle {
+      display: none;
     }
+    &:hover {
+      .react-resizable-handle {
+        display: block;
+      }
+    }
+  }
 }
-
- 

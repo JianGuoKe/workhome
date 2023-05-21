@@ -1,17 +1,22 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
+import { Button, message } from 'antd';
 import WorkSpaceContext from '../WorkSpaceContext';
 import { useContext } from 'react';
+import { db } from '../Data';
 
-export default function AddCard() {
-  const context = useContext(WorkSpaceContext);
+export default function AddCard() { 
+
+  function handleAddCard(){
+    db.addCard().catch(message.error)
+  }
+
   return (
     <div className="workhome-card-add"> 
         <Button
           type="text"
           title="添加卡片"
           icon={<PlusOutlined />}
-          onClick={context?.showCardModal}
+          onClick={handleAddCard}
         ></Button> 
     </div>
   );

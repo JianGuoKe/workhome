@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 import 'dayjs/locale/zh-cn';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import Scrollbars from 'react-custom-scrollbars-2';
 dayjs.extend(relativeTime);
 
 console.log(
@@ -28,7 +29,9 @@ db.init()
             },
           }}
         >
-          <WorkSpace />
+          <Scrollbars style={{ width: '100%', height: '100%' }} autoHide>
+            <WorkSpace />
+          </Scrollbars>
         </ConfigProvider>
       </React.StrictMode>
     );

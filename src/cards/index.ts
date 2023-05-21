@@ -22,6 +22,6 @@ export const metadata: { [key: string]: any } = {
     title: '应用列表',
   },
   add: {
-    title: '添加新卡片',
+    title: '添加卡片',
   },
 };

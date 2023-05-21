@@ -5,9 +5,7 @@ export interface WorkSpaceApi {
   showWorkSpacModal: () => void;
   hideWorkSpaceModal: () => void;
   showSettingsDrawer: () => void;
-  closeSettingsDrawer: () => void;
-  showCardModal: () => void;
-  hideCardModal: () => void;
+  closeSettingsDrawer: () => void; 
 }
 const WorkSpaceContext = React.createContext<WorkSpaceApi | null>(null);
 export default WorkSpaceContext;

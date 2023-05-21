@@ -1,32 +1,52 @@
-import { Button, Dropdown, MenuProps } from 'antd';
-import { AppstoreOutlined } from '@ant-design/icons';
+import { Button, Dropdown, MenuProps, Space, message } from 'antd';
+import { AppstoreOutlined, PlusOutlined } from '@ant-design/icons';
 import WorkSpaceContext from '../WorkSpaceContext';
 import { useContext } from 'react';
+import { db } from '../Data';
 
 const items: MenuProps['items'] = [
   {
-    label: <a href="https://note.jianguoke.cn" target='note'>工作空间</a>,
+    label: (
+      <a href="https://note.jianguoke.cn" target="note">
+        记事本
+      </a>
+    ),
     key: 'note',
   },
   {
-    label: <a href="https://calendar.jianguoke.cn" target='calendar'>日历</a>,
+    label: (
+      <a href="https://calendar.jianguoke.cn" target="calendar">
+        日历
+      </a>
+    ),
     key: 'calendar',
   },
   {
-    label: <a href="https://code.jianguoke.cn" target='code'>编程</a>,
+    label: (
+      <a href="https://code.jianguoke.cn" target="code">
+        编程
+      </a>
+    ),
     key: 'code',
   },
 ];
 
 export default function AppsCard() {
-  const context = useContext(WorkSpaceContext);
+  function handleAddCard(){
+    db.addCard().catch(message.error)
+  }
   return (
-    <Dropdown
-      className="workhome-card-apps"
-      menu={{ items }}
-      trigger={['click']}
-    >
-      <Button icon={<AppstoreOutlined />} title='应用列表' type="text">JIANGUOKE</Button> 
-    </Dropdown>
+    <Space className="workhome-card-apps" size={2}>
+      <Dropdown menu={{ items }} trigger={['click']}>
+        <Button
+          icon={<AppstoreOutlined  />}
+          title="坚果壳桌面"
+          type="text"
+        >
+          JIANGUOKE
+        </Button>
+      </Dropdown>
+      <Button className='workhome-card-apps-add' icon={<PlusOutlined />} title="添加卡片" type="text" onClick={handleAddCard}></Button>
+    </Space>
   );
 }
