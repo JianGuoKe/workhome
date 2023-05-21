@@ -162,7 +162,7 @@ export class WorkHomeDexie extends Dexie {
     const layout = [
       { i: 'apps', x: 0, y: 0, w: 1, h: 1, isResizable: false },
       { i: 'settings', x: 11, y: 0, w: 1, h: 1, isResizable: false },
-      { i: 'add', x: 0, y: 1, w: 2, h: 2 },
+      // { i: 'add', x: 0, y: 1, w: 2, h: 2 },
     ];
     const id = await this.workspacs.add({
       ...currentNode,

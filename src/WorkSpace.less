@@ -1,5 +1,7 @@
 .workhome-grid {
   background: transparent;
+  width: 100%;
+  height: 100%;
 
   .ant-layout-header {
     background: transparent;
@@ -8,10 +10,26 @@
 
   .ant-layout {
     background: transparent;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
   }
 
-  &-layout {
-    min-height: 300px;
+  &-holder{
+    flex: 1;
+    
+    display: flex; 
+    justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
+
+    svg{
+      color:#ccc;
+      font-size:x-large;
+    }
   }
 
   &-settings {
@@ -26,7 +44,8 @@
     .react-resizable-handle {
       display: none;
     }
-    &:hover, &.resizing {
+    &:hover,
+    &.resizing {
       .react-resizable-handle {
         display: block;
         z-index: 10;

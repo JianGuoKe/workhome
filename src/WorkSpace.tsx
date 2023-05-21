@@ -3,7 +3,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { Card, db } from './Data';
 import { useEffect, useMemo, useState } from 'react';
-import { Layout, Drawer, message } from 'antd';
+import { Layout, Drawer, message, Button } from 'antd';
 import PPKModal from './PPKModal';
 import Settings from './Settings';
 import FolderModal from './FolderModal';
@@ -13,6 +13,7 @@ import './WorkSpace.less';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import EmptyCard from './cards/EmptyCard';
 import { CardDesignerModal } from './cards/Card';
+import { PlusOutlined } from '@ant-design/icons';
 
 export default function WorkSpace() {
   const [openPPK, setOpenPPK] = useState(false);
@@ -95,6 +96,10 @@ export default function WorkSpace() {
     [cards]
   );
 
+  const hasCusts = cards?.some(
+    (it) => it.name !== 'apps' && it.name !== 'settings'
+  );
+
   return (
     <WorkSpaceContext.Provider
       value={{
@@ -114,7 +119,7 @@ export default function WorkSpace() {
             <ResponsiveReactGridLayout
               className="workhome-grid-layout"
               layouts={workspace.layouts}
-              cols={workspace.cols} 
+              cols={workspace.cols}
               useCSSTransforms={false}
               rowHeight={workspace.rowHeight}
               width={workspace.width}
@@ -155,6 +160,16 @@ export default function WorkSpace() {
             >
               {childs}
             </ResponsiveReactGridLayout>
+          )}
+          {!hasCusts && (
+            <div className="workhome-grid-holder">
+              <Button
+                type="text"
+                title="添加卡片"
+                icon={<PlusOutlined />}
+                onClick={() => showCardDesignerModal()}
+              ></Button>
+            </div>
           )}
         </Layout>
         <Drawer
