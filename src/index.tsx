@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Scrollbars from 'react-custom-scrollbars-2';
 dayjs.extend(relativeTime);
+import './tracker';
 
 console.log(
   '%c[邀请]:你已经看到这了,可以来github共建此项目 https://github.com/JianGuoKe/workhome',
